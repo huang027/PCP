@@ -1,0 +1,4 @@
+This project is to create a Python library for easily converting
+waveform files into a Pitch Class Profile (PCP).  This project
+will leverage numpy and other libraries for their optimized
+use implementation of the fft.
