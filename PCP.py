@@ -3,7 +3,9 @@ import numpy as np
 import math
 import sys
 
+
 class PCP:
+    
     
     def __init__(self):
         self.note_references = [16.35, 17.32, 18.35, 19.45, 20.60, 21.83, 23.12, 24.50, 25.96, 27.50, 29.14, 30.87]
@@ -11,7 +13,9 @@ class PCP:
         
     
     def create_fft(self, filename):
-        self.rate, self.data = scipy.io.wavfile.read('horn_sample.wav')
+        rate, data = scipy.io.wavfile.read('fmin.wav')
+        self.rate = rate
+        self.data = np.array(data, dtype=float)
         
         self.frames = self.data.size
         print "Number of Frames: ", self.frames
@@ -22,7 +26,6 @@ class PCP:
         print "Number of samples: ", self.samples
         
         self.fft_results = np.fft.rfft(self.data) ##fft computing and normalization
-        #raw_input()
     
     
     # The work of the following classes was almost entirely based on a
@@ -30,38 +33,24 @@ class PCP:
     # http://dsp.stackexchange.com/questions/13722/pitch-class-profiling
     # This function returns the values of the notes given the spectrograph
     def m_func(self, l, p):
-        #M(l) = round(12 * log_2( (f_s*l)/(N*f_ref) ) ) % 12
-        #print "L: ", l
         l = l.real
-        #print "Real L: ", l
-        #print "Note: ", p
         a = self.rate * l
         b = self.frames * self.note_references[p]
         c = 12 * np.log2(a/b)
-        #print "What note, times 12, log2: ", c
-        d = -1 * np.round(c)
-        #print "After rounding, ", d
-        e = d % 12
-        #print "Mod by 12!: ", e
-        #raw_input()
-        return e
+        d = np.round(c) % 12
+        return d
 
 
     def pcp(self, p, j): 
         r = 0
         starting = j * self.rate
-        #print "Starting set: ", starting
         ending = starting + self.rate
         if(ending > self.frames): ending = self.frames
-        #print "Ending set: ", ending
-        #raw_input()
+
         for l in self.fft_results[ starting : ending ]:
             result = self.m_func(l[0], p)
-            #print "actual returned result", result
-            if result == p:
-                r+=1
-                #print "There was a match!  Add it!"
-        return r
+            if result == p: r+=1
+        return math.pow(r/10.0,2)/self.rate
 
     
     def calculate_PCP(self):
@@ -73,7 +62,9 @@ class PCP:
 
     def print_results(self):
         for i in range(0,self.samples):
-            print "Second: ", i, " : ", self.results[i]
+            print "Second: ", i
+            for j in range(0,11):
+                 print "\t", j, " : ", self.results[i][j]
 
 
 def main():
